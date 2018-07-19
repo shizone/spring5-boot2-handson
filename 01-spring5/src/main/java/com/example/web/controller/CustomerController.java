@@ -13,28 +13,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 // TODO 3-07 コントローラークラスであることを示すアノテーションを付加する
-
+@Controller
 public class CustomerController {
 
     /** 必要があれば、デバッグ時のログ出力に使ってください */
     private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 
     // TODO 3-08 CustomerServiceをコンストラクタインジェクションする
+    private final CustomerService customerService;
 
-
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
 
     /**
      * 社員一覧画面に遷移するコントローラーメソッド。
      */
     // TODO 3-09 アノテーションを付加して「GET /」に対応させる
-
+    @GetMapping("/")
     public String index(Model model) {
         // TODO 3-10 顧客を全件検索して、遷移先の画面に「customers」という名前で渡す
-
-
+    	model.addAttribute("customers", customerService.findAll());
         // TODO 3-11 src/main/resources/templates/index.htmlに遷移する
-        return null;
+        return "index";
     }
 
     /**
@@ -53,18 +55,20 @@ public class CustomerController {
      * 社員の追加を行うコントローラーメソッド。
      */
     // TODO 3-14 アノテーションを付加して「POST /insertComplete」に対応させる
-
+    @PostMapping("/insertComplete")
     public String insertComplete(
             // TODO 3-15 Bean Validationを実行するアノテーションを付加する
-               CustomerForm customerForm,
+            @Validated CustomerForm customerForm,
             BindingResult bindingResult) {
         // TODO 3-16 検証エラーがあればinsertMain.htmlに遷移する
-
-
+        if (bindingResult.hasErrors()) {
+            return "insertMain";
+        }
 
         // フォームをエンティティに変換
         Customer customer = customerForm.convertToEntity();
         // TODO 3-17 顧客をDBに追加する
+        this.customerService.save(customer);
 
         // TODO 3-18 「/」にリダイレクトしている（変更不要）
         return "redirect:/";
